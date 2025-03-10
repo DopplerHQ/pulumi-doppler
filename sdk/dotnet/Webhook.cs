@@ -84,7 +84,7 @@ namespace Pulumiverse.Doppler
             var defaultOptions = new CustomResourceOptions
             {
                 Version = Utilities.Version,
-                PluginDownloadURL = "github://api.github.com/pulumiverse",
+                PluginDownloadURL = "github://api.github.com/DopplerHQ",
                 AdditionalSecretOutputs =
                 {
                     "payload",

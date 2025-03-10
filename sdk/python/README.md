@@ -33,7 +33,7 @@ $ pip install pulumiverse-doppler
 To use from Go, use `go get` to grab the latest version of the library:
 
 ```bash
-go get github.com/pulumiverse/pulumi-doppler/sdk/go/...
+go get github.com/DopplerHQ/pulumi-doppler/sdk/go/...
 ```
 
 ### .NET

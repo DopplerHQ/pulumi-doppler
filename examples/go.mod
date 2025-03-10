@@ -1,4 +1,4 @@
-module github.com/pulumiverse/pulumi-doppler/examples
+module github.com/DopplerHQ/pulumi-doppler/examples
 
 go 1.21
 

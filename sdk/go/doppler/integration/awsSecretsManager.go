@@ -8,8 +8,8 @@ import (
 	"reflect"
 
 	"errors"
+	"github.com/DopplerHQ/pulumi-doppler/sdk/go/doppler/internal"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-	"github.com/pulumiverse/pulumi-doppler/sdk/go/doppler/internal"
 )
 
 // Manage an AWS Secrets Manager Doppler integration.
@@ -23,10 +23,10 @@ import (
 //
 //	"encoding/json"
 //
+//	"github.com/DopplerHQ/pulumi-doppler/sdk/go/doppler/integration"
+//	"github.com/DopplerHQ/pulumi-doppler/sdk/go/doppler/secretsSync"
 //	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/iam"
 //	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-//	"github.com/pulumiverse/pulumi-doppler/sdk/go/doppler/integration"
-//	"github.com/pulumiverse/pulumi-doppler/sdk/go/doppler/secretsSync"
 //
 // )
 //
