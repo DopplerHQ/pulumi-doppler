@@ -1,4 +1,4 @@
-module github.com/pulumiverse/pulumi-doppler/sdk
+module github.com/DopplerHQ/pulumi-doppler/sdk
 
 go 1.21
 

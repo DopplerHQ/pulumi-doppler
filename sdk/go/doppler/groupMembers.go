@@ -8,8 +8,8 @@ import (
 	"reflect"
 
 	"errors"
+	"github.com/DopplerHQ/pulumi-doppler/sdk/go/doppler/internal"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-	"github.com/pulumiverse/pulumi-doppler/sdk/go/doppler/internal"
 )
 
 // Manage a Doppler group's memberships.
@@ -25,8 +25,8 @@ import (
 //
 // import (
 //
+//	"github.com/DopplerHQ/pulumi-doppler/sdk/go/doppler"
 //	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-//	"github.com/pulumiverse/pulumi-doppler/sdk/go/doppler"
 //
 // )
 //
