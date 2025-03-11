@@ -17,10 +17,17 @@
 package main
 
 import (
+	// The linter requires unnamed imports to have a doc comment
+	_ "embed"
+
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
-	doppler "github.com/pulumiverse/pulumi-doppler/provider"
-	"github.com/pulumiverse/pulumi-doppler/provider/pkg/version"
+
+	doppler "github.com/DopplerHQ/pulumi-doppler/provider"
+	"github.com/DopplerHQ/pulumi-doppler/provider/pkg/version"
 )
+
+//go:embed schema-embed.json
+var pulumiSchema []byte
 
 func main() {
 	// Modify the path to point to the new provider

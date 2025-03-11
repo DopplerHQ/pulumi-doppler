@@ -21,4 +21,4 @@ import * as doppler from "@pulumiverse/doppler";
 {{% /choosable %}}
 {{< /chooser >}}
 
-> You could find more complete and detailed examples in the [pulumi-Doppler repository](https://github.com/pulumiverse/pulumi-doppler/tree/main/examples)
+> You could find more complete and detailed examples in the [pulumi-Doppler repository](https://github.com/DopplerHQ/pulumi-doppler/tree/main/examples)
