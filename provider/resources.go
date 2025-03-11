@@ -18,14 +18,15 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge/tokens"
-
-	"github.com/DopplerHQ/pulumi-doppler/provider/pkg/version"
 	"github.com/DopplerHQ/terraform-provider-doppler/doppler"
+
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
+	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge/tokens"
 	shim "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim"
 	shimv2 "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/sdk-v2"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
+
+	"github.com/DopplerHQ/pulumi-doppler/provider/pkg/version"
 )
 
 // all of the token components used below.
@@ -41,7 +42,7 @@ const (
 // It should validate that the provider can be configured, and provide actionable errors in the case
 // it cannot be. Configuration variables can be read from `vars` using the `stringValue` function -
 // for example `stringValue(vars, "accessKey")`.
-func preConfigureCallback(vars resource.PropertyMap, c shim.ResourceConfig) error {
+func preConfigureCallback(_ resource.PropertyMap, _ shim.ResourceConfig) error {
 	return nil
 }
 
@@ -144,7 +145,7 @@ func Provider() tfbridge.ProviderInfo {
 	}
 
 	prov.SetAutonaming(255, "-")
-	prov.ComputeTokens(
+	prov.MustComputeTokens(
 		tokens.KnownModules(
 			"doppler_",
 			mainMod,
