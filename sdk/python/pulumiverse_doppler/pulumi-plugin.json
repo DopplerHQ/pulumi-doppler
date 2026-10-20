@@ -1,5 +1,0 @@
-{
-  "resource": true,
-  "name": "doppler",
-  "server": "github://api.github.com/pulumiverse"
-}

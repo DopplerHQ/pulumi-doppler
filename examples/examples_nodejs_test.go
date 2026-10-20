@@ -9,13 +9,13 @@ import (
 	"github.com/pulumi/pulumi/pkg/v3/testing/integration"
 )
 
-func getJSBaseOptions(t *testing.T) integration.ProgramTestOptions {
-	base := getBaseOptions()
-	baseJS := base.With(integration.ProgramTestOptions{
-		Dependencies: []string{
-			"@pulumi/foo",
-		},
-	})
+func TestCoreTs(t *testing.T) {
+	test := getBaseOptions(t).
+		With(integration.ProgramTestOptions{
+			// Linked by `make install_nodejs_sdk`.
+			Dependencies: []string{"@dopplerhq/pulumi-doppler"},
+		}).
+		With(coreTestOptions(t, "core-ts"))
 
-	return baseJS
+	integration.ProgramTest(t, &test)
 }

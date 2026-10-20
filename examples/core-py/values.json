@@ -1,0 +1,8 @@
+{
+    "projectDescription": "Pulumi provider integration test",
+    "apiKey": "value-1",
+    "tagColor": "blue",
+    "trustedIps": ["0.0.0.0/0", "::/0"],
+    "webhookName": "Integration test webhook",
+    "webhookEnabled": true
+}

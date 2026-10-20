@@ -1,0 +1,7 @@
+name: core-py
+runtime:
+  name: python
+  options:
+    toolchain: pip
+    virtualenv: venv
+description: Exercises the Doppler resources that need nothing but a Doppler workplace.

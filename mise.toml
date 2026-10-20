@@ -1,0 +1,18 @@
+# Overrides for the generated .config/mise.toml. See https://mise.jdx.dev/configuration.html
+
+[tools]
+# The generated config pins Node 20, but @pulumi/pulumi 3.270+ requires Node 22 or newer.
+node = "24.22.0"
+# The generated pin (2.5.0) is built with Go 1.25 and refuses to lint a Go 1.26 module.
+golangci-lint = "2.13.2"
+
+# Plugins tfgen needs to convert the upstream docs' HCL examples. Some examples use AWS and
+# random resources alongside Doppler ones.
+"vfox-pulumi:pulumi/pulumi-converter-terraform" = "1.4.0"
+"vfox-pulumi:pulumi/pulumi-random" = "4.21.4"
+"vfox-pulumi:pulumi/pulumi-aws" = "7.51.1"
+
+[settings]
+# The Java SDK is not built or published (.ci-mgmt.yaml: publish.sdk "all,!java"), so skip
+# installing its JDK and Gradle.
+disable_tools = ["java", "aqua:gradle/gradle-distributions"]

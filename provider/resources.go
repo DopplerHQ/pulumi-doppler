@@ -16,15 +16,22 @@ package doppler
 
 import (
 	"fmt"
-	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge/tokens"
 	"path/filepath"
+	"runtime/debug"
+	"strings"
+
+	// Allow embedding bridge-metadata.json in the provider.
+	_ "embed"
 
 	"github.com/DopplerHQ/terraform-provider-doppler/doppler"
+
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
+	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge/tokens"
 	shim "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim"
 	shimv2 "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/sdk-v2"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
-	"github.com/pulumiverse/pulumi-doppler/provider/pkg/version"
+
+	"github.com/DopplerHQ/pulumi-doppler/provider/pkg/version"
 )
 
 // all of the token components used below.
@@ -34,18 +41,36 @@ const (
 	mainPkg = "doppler"
 	// modules:
 	mainMod = "index" // the doppler module
+	// githubOrg is Doppler's GitHub org, also used as the .NET root namespace.
+	githubOrg = "DopplerHQ"
 )
+
+//go:embed cmd/pulumi-resource-doppler/bridge-metadata.json
+var metadata []byte
 
 // preConfigureCallback is called before the providerConfigure function of the underlying provider.
 // It should validate that the provider can be configured, and provide actionable errors in the case
 // it cannot be. Configuration variables can be read from `vars` using the `stringValue` function -
 // for example `stringValue(vars, "accessKey")`.
-func preConfigureCallback(vars resource.PropertyMap, c shim.ResourceConfig) error {
+func preConfigureCallback(_ resource.PropertyMap, _ shim.ResourceConfig) error {
 	return nil
 }
 
 // Provider returns additional overlaid schema and metadata associated with the provider..
 func Provider() tfbridge.ProviderInfo {
+	// Upstream sends "terraform-provider-doppler/<ProviderVersion>" as its User-Agent, which
+	// would identify every Pulumi request as Terraform. Append our own product so it reads
+	// "terraform-provider-doppler/1.22.0 pulumi-doppler/<version>".
+	upstreamVersion := "unknown"
+	if info, ok := debug.ReadBuildInfo(); ok {
+		for _, dep := range info.Deps {
+			if dep.Path == "github.com/DopplerHQ/terraform-provider-doppler" {
+				upstreamVersion = strings.TrimPrefix(dep.Version, "v")
+			}
+		}
+	}
+	doppler.ProviderVersion = fmt.Sprintf("%s pulumi-doppler/%s", upstreamVersion, version.Version)
+
 	// Instantiate the Terraform provider
 	p := shimv2.NewProvider(doppler.Provider())
 
@@ -58,34 +83,36 @@ func Provider() tfbridge.ProviderInfo {
 		// DisplayName is a way to be able to change the casing of the provider
 		// name when being displayed on the Pulumi registry
 		DisplayName: "Doppler",
-		// The default publisher for all packages is Pulumi.
-		// Change this to your personal name (or a company name) that you
-		// would like to be shown in the Pulumi Registry if this package is published
-		// there.
-		Publisher: "Pulumiverse",
-		// LogoURL is optional but useful to help identify your package in the Pulumi Registry
-		// if this package is published there.
-		//
-		// You may host a logo on a domain you control or add an SVG logo for your package
-		// in your repository and use the raw content URL for that file as your logo URL.
-		LogoURL: "https://raw.githubusercontent.com/pulumiverse/pulumi-doppler/main/docs/logo.png",
+		// Shown in the Pulumi Registry. Must match a name in pulumi/registry's
+		// publisher-names.json, or registry publishing fails.
+		Publisher: "Doppler",
+		// Doppler's gradient logomark. Keep it a PNG: the .NET codegen downloads this URL into
+		// the NuGet package icon, and NuGet accepts only PNG and JPEG icons.
+		LogoURL: "https://raw.githubusercontent.com/DopplerHQ/pulumi-doppler/main/docs/logo.png",
 		// PluginDownloadURL is an optional URL used to download the Provider
 		// for use in Pulumi programs
 		// e.g https://github.com/org/pulumi-provider-name/releases/
-		PluginDownloadURL: "github://api.github.com/pulumiverse",
-		Description:       "A Pulumi package for creating and managing doppler cloud resources.",
+		PluginDownloadURL: "github://api.github.com/DopplerHQ",
+		Description:       "A Pulumi package for managing Doppler projects, secrets, and access.",
 		// category/cloud tag helps with categorizing the package in the Pulumi Registry.
 		// For all available categories, see `Keywords` in
 		// https://www.pulumi.com/docs/guides/pulumi-packages/schema/#package.
-		Keywords:   []string{"pulumi", "doppler", "category/cloud"},
+		Keywords:   []string{"pulumi", "doppler", "secrets", "secrets-management", "category/cloud"},
 		License:    "Apache-2.0",
-		Homepage:   "https://www.pulumi.com",
-		Repository: "https://github.com/pulumiverse/pulumi-doppler",
+		Homepage:   "https://www.doppler.com",
+		Repository: "https://github.com/DopplerHQ/pulumi-doppler",
 		Version:    version.Version,
+		// Without this the bridge assumes the upstream provider is MPL-2.0 and says so in
+		// every SDK README.
+		TFProviderLicense: tfbridge.SetProviderLicense(tfbridge.Apache20LicenseType),
 		// The GitHub Org for the provider - defaults to `terraform-providers`. Note that this
 		// should match the TF provider module's require directive, not any replace directives.
-		GitHubOrg:            "DopplerHQ",
-		Config:               map[string]*tfbridge.SchemaInfo{},
+		GitHubOrg:    githubOrg,
+		MetadataInfo: tfbridge.NewProviderMetadata(metadata),
+		Config: map[string]*tfbridge.SchemaInfo{
+			// Upstream doesn't mark the token Sensitive, so Pulumi would store it in plaintext.
+			"doppler_token": {Secret: tfbridge.True()},
+		},
 		PreConfigureCallback: preConfigureCallback,
 		Resources: map[string]*tfbridge.ResourceInfo{
 			"doppler_config": {
@@ -96,58 +123,71 @@ func Provider() tfbridge.ProviderInfo {
 					},
 				},
 			},
+			"doppler_trusted_ips": {
+				Fields: map[string]*tfbridge.SchemaInfo{
+					// C# forbids a member named after its enclosing type (TrustedIps).
+					"trusted_ips": {CSharpName: "TrustedIpList"},
+				},
+			},
 		},
-		DataSources: map[string]*tfbridge.DataSourceInfo{},
+		DataSources: map[string]*tfbridge.DataSourceInfo{
+			"doppler_environments": {
+				Fields: map[string]*tfbridge.SchemaInfo{
+					// The bridge pluralizes the upstream "list" attribute to "lists".
+					"list": {Name: "environments"},
+				},
+			},
+		},
 		JavaScript: &tfbridge.JavaScriptInfo{
-			PackageName: "@pulumiverse/doppler",
-			// List any npm dependencies and their versions
-			Dependencies: map[string]string{
-				"@pulumi/pulumi": "^3.0.0",
-			},
-			DevDependencies: map[string]string{
-				"@types/node": "^10.0.0", // so we can access strongly typed node definitions.
-				"@types/mime": "^2.0.0",
-			},
+			PackageName:          "@dopplerhq/pulumi-doppler",
+			RespectSchemaVersion: true,
 			// See the documentation for tfbridge.OverlayInfo for how to lay out this
 			// section, or refer to the AWS provider. Delete this section if there are
 			// no overlay files.
 			//Overlay: &tfbridge.OverlayInfo{},
 		},
 		Python: &tfbridge.PythonInfo{
-			PackageName: "pulumiverse_doppler",
+			PackageName: "pulumi_doppler",
 			// List any Python dependencies and their version ranges
 			Requires: map[string]string{
 				"pulumi": ">=3.0.0,<4.0.0",
 			},
+			PyProject:            struct{ Enabled bool }{true},
+			RespectSchemaVersion: true,
 		},
 		Golang: &tfbridge.GolangInfo{
 			ImportBasePath: filepath.Join(
-				fmt.Sprintf("github.com/pulumiverse/pulumi-%[1]s/sdk/", mainPkg),
+				fmt.Sprintf("github.com/DopplerHQ/pulumi-%[1]s/sdk/", mainPkg),
 				tfbridge.GetModuleMajorVersion(version.Version),
 				"go",
 				mainPkg,
 			),
 			GenerateResourceContainerTypes: true,
+			RespectSchemaVersion:           true,
 		},
 		CSharp: &tfbridge.CSharpInfo{
-			RootNamespace: "Pulumiverse",
+			RootNamespace: githubOrg,
 			PackageReferences: map[string]string{
 				"Pulumi": "3.*",
 			},
+			RespectSchemaVersion: true,
 		},
 	}
 
 	prov.SetAutonaming(255, "-")
-	prov.ComputeTokens(
+	prov.MustComputeTokens(
 		tokens.KnownModules(
 			"doppler_",
 			mainMod,
 			[]string{
 				"integration_",
 				"project_member_",
+				"rotated_secret_",
 				"secrets_sync_",
 			},
 			tokens.MakeStandard(mainPkg)))
+	// Record token history in bridge-metadata.json so later renames get aliases automatically.
+	prov.MustApplyAutoAliases()
 
 	return prov
 }

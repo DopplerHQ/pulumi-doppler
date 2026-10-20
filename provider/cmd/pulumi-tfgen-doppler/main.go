@@ -16,8 +16,9 @@ package main
 
 import (
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfgen"
-	doppler "github.com/pulumiverse/pulumi-doppler/provider"
-	"github.com/pulumiverse/pulumi-doppler/provider/pkg/version"
+
+	doppler "github.com/DopplerHQ/pulumi-doppler/provider"
+	"github.com/DopplerHQ/pulumi-doppler/provider/pkg/version"
 )
 
 func main() {
