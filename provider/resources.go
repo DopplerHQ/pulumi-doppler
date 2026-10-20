@@ -17,6 +17,11 @@ package doppler
 import (
 	"fmt"
 	"path/filepath"
+	"runtime/debug"
+	"strings"
+
+	// Allow embedding bridge-metadata.json in the provider.
+	_ "embed"
 
 	"github.com/DopplerHQ/terraform-provider-doppler/doppler"
 
@@ -40,6 +45,9 @@ const (
 	githubOrg = "DopplerHQ"
 )
 
+//go:embed cmd/pulumi-resource-doppler/bridge-metadata.json
+var metadata []byte
+
 // preConfigureCallback is called before the providerConfigure function of the underlying provider.
 // It should validate that the provider can be configured, and provide actionable errors in the case
 // it cannot be. Configuration variables can be read from `vars` using the `stringValue` function -
@@ -50,6 +58,19 @@ func preConfigureCallback(_ resource.PropertyMap, _ shim.ResourceConfig) error {
 
 // Provider returns additional overlaid schema and metadata associated with the provider..
 func Provider() tfbridge.ProviderInfo {
+	// Upstream sends "terraform-provider-doppler/<ProviderVersion>" as its User-Agent, which
+	// would identify every Pulumi request as Terraform. Append our own product so it reads
+	// "terraform-provider-doppler/1.22.0 pulumi-doppler/<version>".
+	upstreamVersion := "unknown"
+	if info, ok := debug.ReadBuildInfo(); ok {
+		for _, dep := range info.Deps {
+			if dep.Path == "github.com/DopplerHQ/terraform-provider-doppler" {
+				upstreamVersion = strings.TrimPrefix(dep.Version, "v")
+			}
+		}
+	}
+	doppler.ProviderVersion = fmt.Sprintf("%s pulumi-doppler/%s", upstreamVersion, version.Version)
+
 	// Instantiate the Terraform provider
 	p := shimv2.NewProvider(doppler.Provider())
 
@@ -65,28 +86,29 @@ func Provider() tfbridge.ProviderInfo {
 		// Shown in the Pulumi Registry. Must match a name in pulumi/registry's
 		// publisher-names.json, or registry publishing fails.
 		Publisher: "Doppler",
-		// LogoURL is optional but useful to help identify your package in the Pulumi Registry
-		// if this package is published there.
-		//
-		// You may host a logo on a domain you control or add an SVG logo for your package
-		// in your repository and use the raw content URL for that file as your logo URL.
+		// Doppler's gradient logomark. Keep it a PNG: the .NET codegen downloads this URL into
+		// the NuGet package icon, and NuGet accepts only PNG and JPEG icons.
 		LogoURL: "https://raw.githubusercontent.com/DopplerHQ/pulumi-doppler/main/docs/logo.png",
 		// PluginDownloadURL is an optional URL used to download the Provider
 		// for use in Pulumi programs
 		// e.g https://github.com/org/pulumi-provider-name/releases/
 		PluginDownloadURL: "github://api.github.com/DopplerHQ",
-		Description:       "A Pulumi package for creating and managing doppler cloud resources.",
+		Description:       "A Pulumi package for managing Doppler projects, secrets, and access.",
 		// category/cloud tag helps with categorizing the package in the Pulumi Registry.
 		// For all available categories, see `Keywords` in
 		// https://www.pulumi.com/docs/guides/pulumi-packages/schema/#package.
-		Keywords:   []string{"pulumi", "doppler", "category/cloud"},
+		Keywords:   []string{"pulumi", "doppler", "secrets", "secrets-management", "category/cloud"},
 		License:    "Apache-2.0",
-		Homepage:   "https://www.pulumi.com",
+		Homepage:   "https://www.doppler.com",
 		Repository: "https://github.com/DopplerHQ/pulumi-doppler",
 		Version:    version.Version,
+		// Without this the bridge assumes the upstream provider is MPL-2.0 and says so in
+		// every SDK README.
+		TFProviderLicense: tfbridge.SetProviderLicense(tfbridge.Apache20LicenseType),
 		// The GitHub Org for the provider - defaults to `terraform-providers`. Note that this
 		// should match the TF provider module's require directive, not any replace directives.
-		GitHubOrg: githubOrg,
+		GitHubOrg:    githubOrg,
+		MetadataInfo: tfbridge.NewProviderMetadata(metadata),
 		Config: map[string]*tfbridge.SchemaInfo{
 			// Upstream doesn't mark the token Sensitive, so Pulumi would store it in plaintext.
 			"doppler_token": {Secret: tfbridge.True()},
@@ -164,6 +186,8 @@ func Provider() tfbridge.ProviderInfo {
 				"secrets_sync_",
 			},
 			tokens.MakeStandard(mainPkg)))
+	// Record token history in bridge-metadata.json so later renames get aliases automatically.
+	prov.MustApplyAutoAliases()
 
 	return prov
 }
