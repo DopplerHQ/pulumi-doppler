@@ -10,13 +10,13 @@ import (
 	"github.com/pulumi/pulumi/pkg/v3/testing/integration"
 )
 
-func getPythonBaseOptions(t *testing.T) integration.ProgramTestOptions {
-	base := getBaseOptions()
-	basePython := base.With(integration.ProgramTestOptions{
-		Dependencies: []string{
-			filepath.Join("..", "sdk", "python", "bin"),
-		},
-	})
+func TestCorePy(t *testing.T) {
+	test := getBaseOptions(t).
+		With(integration.ProgramTestOptions{
+			// Built by `make build_python`.
+			Dependencies: []string{filepath.Join("..", "sdk", "python", "bin")},
+		}).
+		With(coreTestOptions(t, "core-py"))
 
-	return basePython
+	integration.ProgramTest(t, &test)
 }

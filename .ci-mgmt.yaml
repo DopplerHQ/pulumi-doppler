@@ -13,6 +13,13 @@ autoMergeProviderUpgrades: false
 # with GITHUB_TOKEN don't.
 github-app:
     enabled: false
+# The examples/ integration tests create real resources in a Doppler test workplace, and skip
+# when DOPPLER_TOKEN is empty (as on fork PRs). See examples/README.md.
+env:
+    DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+    DOPPLER_TEST_MEMBER_EMAIL: ${{ vars.DOPPLER_TEST_MEMBER_EMAIL }}
+# Also run the integration tests daily, so API or upstream regressions surface between PRs.
+generate-nightly-test-workflow: true
 languages:
     - dotnet
     - go

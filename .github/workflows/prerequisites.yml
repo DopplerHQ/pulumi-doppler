@@ -20,6 +20,8 @@ on:
         value: ${{ jobs.prerequisites.outputs.version }}
 
 env:
+  DOPPLER_TEST_MEMBER_EMAIL: ${{ vars.DOPPLER_TEST_MEMBER_EMAIL }}
+  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
   PULUMI_API: https://api.pulumi-staging.io
   PULUMI_GO_DEP_ROOT: ${{ github.workspace }}/..
   PULUMI_LOCAL_NUGET: ${{ github.workspace }}/nuget

@@ -2,7 +2,10 @@ module github.com/DopplerHQ/pulumi-doppler/examples
 
 go 1.26.6
 
-require github.com/pulumi/pulumi/pkg/v3 v3.270.0
+require (
+	github.com/pulumi/pulumi/pkg/v3 v3.270.0
+	github.com/stretchr/testify v1.12.1
+)
 
 require (
 	cel.dev/expr v0.25.2 // indirect
@@ -164,7 +167,6 @@ require (
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.8.1 // indirect
-	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/texttheater/golang-levenshtein v1.0.1 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect

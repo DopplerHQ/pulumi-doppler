@@ -1,4 +1,5 @@
 .pulumi/
 **/bin/
+**/obj/
 node_modules/
-
+venv/
