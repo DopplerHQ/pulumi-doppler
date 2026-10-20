@@ -5,22 +5,22 @@ major-version: 0
 providerDefaultBranch: main
 upstreamProviderOrg: DopplerHQ
 publishRegistry: false
-plugins:
-  - name: terraform
-    version: "1.0.19"
-    kind: converter
-  - name: random
-    version: "4.16.7"
-  - name: aws
-    version: "6.56.1"
+# Upstream upgrade PRs wait for a human review instead of merging once CI passes.
+autoMergeProviderUpgrades: false
+# Workflows authenticate with the PULUMI_PROVIDER_AUTOMATION_TOKEN secret (a fine-grained
+# token with contents, pull-requests and workflows write on this repo) rather than minting
+# GitHub App tokens. The secret also lets automated upgrade PRs trigger CI, which PRs opened
+# with GITHUB_TOKEN don't.
+github-app:
+    enabled: false
 languages:
-  - dotnet
-  - go
-  - nodejs
-  - python
+    - dotnet
+    - go
+    - nodejs
+    - python
 publish:
-  sdk: "all,!java"
-  cdn: false
+    sdk: "all,!java"
+    cdn: false
 # license:
 #   ignore:
 #     - github.com/apache/arrow/go/v15
