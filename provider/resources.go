@@ -86,8 +86,11 @@ func Provider() tfbridge.ProviderInfo {
 		Version:    version.Version,
 		// The GitHub Org for the provider - defaults to `terraform-providers`. Note that this
 		// should match the TF provider module's require directive, not any replace directives.
-		GitHubOrg:            githubOrg,
-		Config:               map[string]*tfbridge.SchemaInfo{},
+		GitHubOrg: githubOrg,
+		Config: map[string]*tfbridge.SchemaInfo{
+			// Upstream doesn't mark the token Sensitive, so Pulumi would store it in plaintext.
+			"doppler_token": {Secret: tfbridge.True()},
+		},
 		PreConfigureCallback: preConfigureCallback,
 		Resources: map[string]*tfbridge.ResourceInfo{
 			"doppler_config": {
@@ -98,8 +101,21 @@ func Provider() tfbridge.ProviderInfo {
 					},
 				},
 			},
+			"doppler_trusted_ips": {
+				Fields: map[string]*tfbridge.SchemaInfo{
+					// C# forbids a member named after its enclosing type (TrustedIps).
+					"trusted_ips": {CSharpName: "TrustedIpList"},
+				},
+			},
 		},
-		DataSources: map[string]*tfbridge.DataSourceInfo{},
+		DataSources: map[string]*tfbridge.DataSourceInfo{
+			"doppler_environments": {
+				Fields: map[string]*tfbridge.SchemaInfo{
+					// The bridge pluralizes the upstream "list" attribute to "lists".
+					"list": {Name: "environments"},
+				},
+			},
+		},
 		JavaScript: &tfbridge.JavaScriptInfo{
 			PackageName:          "@dopplerhq/pulumi-doppler",
 			RespectSchemaVersion: true,
@@ -144,6 +160,7 @@ func Provider() tfbridge.ProviderInfo {
 			[]string{
 				"integration_",
 				"project_member_",
+				"rotated_secret_",
 				"secrets_sync_",
 			},
 			tokens.MakeStandard(mainPkg)))
