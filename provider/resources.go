@@ -36,6 +36,8 @@ const (
 	mainPkg = "doppler"
 	// modules:
 	mainMod = "index" // the doppler module
+	// githubOrg is Doppler's GitHub org, also used as the .NET root namespace.
+	githubOrg = "DopplerHQ"
 )
 
 // preConfigureCallback is called before the providerConfigure function of the underlying provider.
@@ -60,11 +62,9 @@ func Provider() tfbridge.ProviderInfo {
 		// DisplayName is a way to be able to change the casing of the provider
 		// name when being displayed on the Pulumi registry
 		DisplayName: "Doppler",
-		// The default publisher for all packages is Pulumi.
-		// Change this to your personal name (or a company name) that you
-		// would like to be shown in the Pulumi Registry if this package is published
-		// there.
-		Publisher: "DopplerHQ",
+		// Shown in the Pulumi Registry. Must match a name in pulumi/registry's
+		// publisher-names.json, or registry publishing fails.
+		Publisher: "Doppler",
 		// LogoURL is optional but useful to help identify your package in the Pulumi Registry
 		// if this package is published there.
 		//
@@ -86,7 +86,7 @@ func Provider() tfbridge.ProviderInfo {
 		Version:    version.Version,
 		// The GitHub Org for the provider - defaults to `terraform-providers`. Note that this
 		// should match the TF provider module's require directive, not any replace directives.
-		GitHubOrg:            "DopplerHQ",
+		GitHubOrg:            githubOrg,
 		Config:               map[string]*tfbridge.SchemaInfo{},
 		PreConfigureCallback: preConfigureCallback,
 		Resources: map[string]*tfbridge.ResourceInfo{
@@ -101,15 +101,7 @@ func Provider() tfbridge.ProviderInfo {
 		},
 		DataSources: map[string]*tfbridge.DataSourceInfo{},
 		JavaScript: &tfbridge.JavaScriptInfo{
-			PackageName: "@pulumiverse/doppler",
-			// List any npm dependencies and their versions
-			Dependencies: map[string]string{
-				"@pulumi/pulumi": "^3.0.0",
-			},
-			DevDependencies: map[string]string{
-				"@types/node": "^10.0.0", // so we can access strongly typed node definitions.
-				"@types/mime": "^2.0.0",
-			},
+			PackageName:          "@dopplerhq/pulumi-doppler",
 			RespectSchemaVersion: true,
 			// See the documentation for tfbridge.OverlayInfo for how to lay out this
 			// section, or refer to the AWS provider. Delete this section if there are
@@ -117,7 +109,7 @@ func Provider() tfbridge.ProviderInfo {
 			//Overlay: &tfbridge.OverlayInfo{},
 		},
 		Python: &tfbridge.PythonInfo{
-			PackageName: "pulumiverse_doppler",
+			PackageName: "pulumi_doppler",
 			// List any Python dependencies and their version ranges
 			Requires: map[string]string{
 				"pulumi": ">=3.0.0,<4.0.0",
@@ -136,7 +128,7 @@ func Provider() tfbridge.ProviderInfo {
 			RespectSchemaVersion:           true,
 		},
 		CSharp: &tfbridge.CSharpInfo{
-			RootNamespace: "Pulumiverse",
+			RootNamespace: githubOrg,
 			PackageReferences: map[string]string{
 				"Pulumi": "3.*",
 			},
