@@ -1,0 +1,3 @@
+name: doppler
+description: A Pulumi resource provider for doppler.
+language: nodejs

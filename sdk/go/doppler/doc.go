@@ -1,2 +1,2 @@
-// A Pulumi package for creating and managing doppler cloud resources.
+// A Pulumi package for managing Doppler projects, secrets, and access.
 package doppler
